@@ -23,8 +23,6 @@ def get_historical_data(api_key,
                     limit = 1000, #max is 1000 & default is 500
                     # klines_type = kline_type
                     )
-
-    print(len(klines))
     
     #convert returned OHLCV values to pandas dataframe
     df_hist = pd.DataFrame(klines, 
@@ -38,7 +36,5 @@ def get_historical_data(api_key,
     #change datatype to datetime
     df_hist['open_time'] =  pd.to_datetime(df_hist['open_time'], unit='ms')
     df_hist['close_time'] =  pd.to_datetime(df_hist['close_time'], unit='ms')
-
-    print(df_hist.info())
 
     return df_hist

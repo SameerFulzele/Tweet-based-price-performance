@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from src import binance_api, twitter_auth
+import pandas as pd
 
 load_dotenv()
 
@@ -17,26 +18,36 @@ kucoin_api_secret = os.getenv('kucoin_api_secret')
 
 user_id = "MadNews_io"
 context = "Binance Will List"
-exchange_preference = ['binance','kucoin']
+complete_history = False
 
+df_tweets = twitter_auth.get_tweets(consumer_key, consumer_secret, 
+                                    access_token, access_token_secret,
+                                    user_id, context, complete_history)
+print(df_tweets)
 
-# todo test the working and write other functions
-# df_tweets = twitter_auth.get_tweets(consumer_key, consumer_secret, \
-#                                     access_token, access_token_secret,\
-#                                     user_id, context)
+df = pd.DataFrame()
 
-# for tweet in len(df_tweets):
+for i in range(len(df_tweets)):
+    df_temp = df_tweets.iloc[i, : ]
+    coin = df_temp['coin']
+    tweet_time = df_temp['created_at']
+
+    # todo: need a method to find trading pair in the exchange
+    coin_pair = coin + 'USDT'   
+
+    df_hist_of_coin = binance_api.get_historical_data(
+                        api_key= binance_api_key, 
+                        api_secret= binance_api_secret,
+                        coin_pair = coin_pair, 
+                        tweet_time = str(tweet_time),
+                        min_interval ='1m',
+                        kline_type = 'SPOT'
+                        )
+    df_hist_of_coin['coin_pair'] = coin_pair
+    df = df.append(df_hist_of_coin, ignore_index= True)
     
-#     if pair_exists:
+df.to_csv('data/price_data.csv',index = False)
 
- 
-df = binance_api.get_historical_data(
-                    api_key= binance_api_key, 
-                    api_secret= binance_api_secret,
-                    coin_pair = 'XRPUSDT', 
-                    tweet_time = "2021-12-24 16:17:00",
-                    min_interval ='1m', 
-                    kline_type = 'SPOT'
-                    )
-print(df.iloc[0])
+print('Tweets and Prices data has been saved in data folder')
+
 
