@@ -2,6 +2,7 @@
 Saving the price performance of a coin after news coming from twitter.
 
 .env format:
+    
     consumer_key= ''
     consumer_secret= ''
     access_token= ''
