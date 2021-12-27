@@ -1,7 +1,10 @@
 import os
 from dotenv import load_dotenv
-from src import binance_api, twitter_auth
+from src import base, twitter_auth, ftx_api
 import pandas as pd
+import datetime
+import requests
+import time
 
 load_dotenv()
 
@@ -12,42 +15,26 @@ access_token_secret = os.getenv('access_token_secret')
 
 binance_api_key = os.getenv('binance_api_key')
 binance_api_secret = os.getenv('binance_api_secret')
-kucoin_api_key = os.getenv('kucoin_api_key')
-kucoin_api_secret = os.getenv('kucoin_api_secret')
+ftx_api_key = os.getenv('ftx_api_key')
+ftx_api_secret = os.getenv('ftx_api_secret')
 
 
-user_id = "MadNews_io"
+user_id = "binance"
 context = "Binance Will List"
-complete_history = False
+complete_history = True
+start_time = datetime.datetime(2021, 11, 24, 0, 0, tzinfo=datetime.timezone.utc)
+
 
 df_tweets = twitter_auth.get_tweets(consumer_key, consumer_secret, 
                                     access_token, access_token_secret,
-                                    user_id, context, complete_history)
+                                    user_id, context, complete_history,start_time)
+
 print(df_tweets)
 
-df = pd.DataFrame()
+base.fetch_price_from_binance(df_tweets, binance_api_key, binance_api_secret)
+ftx_api.fetch_price_from_ftx(df_tweets)
 
-for i in range(len(df_tweets)):
-    df_temp = df_tweets.iloc[i, : ]
-    coin = df_temp['coin']
-    tweet_time = df_temp['created_at']
 
-    # todo: need a method to find trading pair in the exchange
-    coin_pair = coin + 'USDT'   
 
-    df_hist_of_coin = binance_api.get_historical_data(
-                        api_key= binance_api_key, 
-                        api_secret= binance_api_secret,
-                        coin_pair = coin_pair, 
-                        tweet_time = str(tweet_time),
-                        min_interval ='1m',
-                        kline_type = 'SPOT'
-                        )
-    df_hist_of_coin['coin_pair'] = coin_pair
-    df = df.append(df_hist_of_coin, ignore_index= True)
-    
-df.to_csv('data/price_data.csv',index = False)
-
-print('Tweets and Prices data has been saved in data folder')
 
 
