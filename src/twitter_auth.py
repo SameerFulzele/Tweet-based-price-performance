@@ -7,8 +7,14 @@ import datetime
 
 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
 
-def get_tweets(consumer_key, consumer_secret, access_token, access_token_secret,
-    user_id, context, complete_history, start_time):
+def get_tweets(consumer_key,
+               consumer_secret,
+               access_token,
+               access_token_secret,
+               user_id,
+               context,
+               complete_history,
+               start_time):
     
     # Authorize our Twitter credentials
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
@@ -30,22 +36,19 @@ def get_tweets(consumer_key, consumer_secret, access_token, access_token_secret,
 
     while complete_history:
         tweets = api.user_timeline(screen_name=user_id, 
-                            count=200,
-                            include_rts = False,
-                            max_id = oldest_id - 1,
-                            tweet_mode = 'extended',
-                            exclude_replies = False,
-                            )
+                                    count=200,
+                                    include_rts = False,
+                                    max_id = oldest_id - 1,
+                                    tweet_mode = 'extended',
+                                    exclude_replies = False,
+                                    )
         if len(tweets) == 0:
             break
-            
         oldest_id = tweets[-1].id
         all_tweets.extend(tweets)
 
-        print(f'last tweet of iteration at {tweets[-1].created_at} type {type(tweets[-1].created_at)} and start_time is {start_time}')
         if tweets[-1].created_at < start_time:
             break
-        
         print(f'{len(all_tweets)} tweets fetched till now')
 
     tweet_list = [[tweet.id_str, 
@@ -58,10 +61,11 @@ def get_tweets(consumer_key, consumer_secret, access_token, access_token_secret,
         columns=["id","created_at","favorite_count","retweet_count", "text"])
     
     print(f' Total number of tweets fetched for the user is {len(df_all_tweets)}')
-    df_all_tweets.to_csv('data/all_tweets.csv')
+    df_all_tweets.to_csv('data/all_tweets.csv', index= False)
     
     df_filtered = _filter_tweets(df_all_tweets, context)
     df = _get_details(df_filtered)
+    df.to_csv('data/filtered_tweets.csv', index= False)
     return df
 
 
@@ -71,7 +75,8 @@ def _filter_tweets(df_all_tweets,context):
     & filter out unnessary tweets
     """
     # df_filtered = df_all_tweets[df_all_tweets['text'].str.contains(context)]
-    df_all_tweets['filter'] = df_all_tweets['text'].apply(lambda x: 1 if re.search(context, x, flags=re.IGNORECASE) else 0)
+    df_all_tweets['filter'] = df_all_tweets['text'].apply(
+        lambda x: 1 if re.search(context, x, flags=re.IGNORECASE) else 0)
     df_filtered = df_all_tweets.loc[df_all_tweets['filter'] == 1]
     df_filtered = df_filtered.drop('filter', axis=1)
     print(f'{len(df_filtered)} number of tweets matched the context filter')

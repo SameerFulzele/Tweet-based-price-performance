@@ -25,14 +25,23 @@ complete_history = True
 start_time = datetime.datetime(2021, 11, 24, 0, 0, tzinfo=datetime.timezone.utc)
 
 
-# df_tweets = twitter_auth.get_tweets(consumer_key, consumer_secret, 
-#                                     access_token, access_token_secret,
-#                                     user_id, context, complete_history,start_time)
-
-df_tweets = pd.read_csv('data/all_tweets.csv')
-df_tweets = twitter_auth._filter_tweets(df_tweets, context)
-df_tweets = twitter_auth._get_details(df_tweets)
+df_tweets = twitter_auth.get_tweets(consumer_key, 
+                                    consumer_secret, 
+                                    access_token, 
+                                    access_token_secret,
+                                    user_id, 
+                                    context, 
+                                    complete_history,
+                                    start_time)
 print(df_tweets)
 
-base.fetch_price_from_binance(df_tweets, binance_api_key, binance_api_secret)
-base.fetch_price_from_ftx(df_tweets)
+df_binance = base.fetch_price_from_binance(df_tweets,
+                                           binance_api_key, 
+                                           binance_api_secret)
+                                           
+df_ftx = base.fetch_price_from_ftx(df_tweets)
+
+interval_list = ['1m', '3m', '5m', '15m', '30m', '1h']
+df_price_diff = base.get_price_change_at_intervals(df_ftx,interval_list)
+df_price_diff.to_csv('Price_Difference.csv',index= False)
+print(df_price_diff)

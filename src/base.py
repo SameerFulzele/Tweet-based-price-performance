@@ -1,6 +1,7 @@
 from src import binance_api, ftx_api
 import pandas as pd
 from datetime import datetime
+import re
 
 def fetch_price_from_binance(df_tweets,binance_api_key,binance_api_secret):
     df_binance = pd.DataFrame()
@@ -36,6 +37,8 @@ def fetch_price_from_binance(df_tweets,binance_api_key,binance_api_secret):
     df_binance.to_csv('data/price_data_binance.csv',index = False)
     print('Prices data fetched from Binance has been saved in data folder')
 
+    return df_binance
+
 
 def fetch_price_from_ftx(df_tweets):
     #FTX Fetch prices
@@ -51,6 +54,7 @@ def fetch_price_from_ftx(df_tweets):
         tweet_time = pd.to_datetime(tweet_time)
         start_timestamp = datetime.timestamp(tweet_time)
         
+        # fetching only 12 hours of data from the time of tweet
         end_datetime = tweet_time + pd.DateOffset(hours=12)
         end_timestamp = datetime.timestamp(end_datetime) 
 
@@ -67,7 +71,32 @@ def fetch_price_from_ftx(df_tweets):
             continue
 
         df_hist_of_coin['coin_pair'] = base_currency + quote_currency
-        print(base_currency + quote_currency,len(df_hist_of_coin))
+        print(coin_pair,len(df_hist_of_coin))
         df_ftx = df_ftx.append(df_hist_of_coin, ignore_index= True)
     df_ftx.to_csv('data/price_data_ftx.csv',index = False)
     print('Prices data fetched from FTX has been saved in data folder')
+
+    return df_ftx
+
+def get_price_change_at_intervals(df, interval_list):
+    df_price_diff = pd.DataFrame()
+    coin_pair_list = df['coin_pair'].unique()
+    for coin in coin_pair_list:
+        row_dict = {}
+        row_dict['coin_pair'] = coin
+        base_price = df.loc[df['time'] == df['time'].min(),'open_price']
+        base_price = float(base_price)
+
+        for i in range(len(interval_list)):
+            tunit = re.sub(r'[0-9]', '', interval_list[i])
+            value = re.sub('[^0-9,]', "", interval_list[i])
+            diff_time = df['time'].min() + pd.Timedelta(int(value),tunit)
+            current_price = df.loc[df['time'] == diff_time,'close_price']
+            current_price = float(current_price)
+            price_diff = ((current_price - base_price)/base_price)*100
+
+            row_dict[interval_list[i]] = price_diff
+        df_price_diff = df_price_diff.append(row_dict, ignore_index = True)    
+    return df_price_diff
+
+
