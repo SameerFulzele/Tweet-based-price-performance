@@ -1,4 +1,5 @@
 pandas==1.3.5
 python-dotenv==0.19.2
 python_binance==1.0.15
+requests==2.26.0
 tweepy==4.4.0
