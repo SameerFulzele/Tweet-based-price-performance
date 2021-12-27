@@ -82,19 +82,20 @@ def get_price_change_at_intervals(df, interval_list):
     df_price_diff = pd.DataFrame()
     coin_pair_list = df['coin_pair'].unique()
     for coin in coin_pair_list:
+        df_temp = df.loc[df['coin_pair'] == coin].copy()
         row_dict = {}
         row_dict['coin_pair'] = coin
-        base_price = df.loc[df['time'] == df['time'].min(),'open_price']
+        base_price = df_temp.loc[df_temp['time'] == df_temp['time'].min(),'open_price']
         base_price = float(base_price)
 
         for i in range(len(interval_list)):
             tunit = re.sub(r'[0-9]', '', interval_list[i])
             value = re.sub('[^0-9,]', "", interval_list[i])
-            diff_time = df['time'].min() + pd.Timedelta(int(value),tunit)
-            current_price = df.loc[df['time'] == diff_time,'close_price']
+            diff_time = df_temp['time'].min() + pd.Timedelta(int(value),tunit)
+            current_price = df_temp.loc[df_temp['time'] == diff_time,'close_price']
             current_price = float(current_price)
             price_diff = ((current_price - base_price)/base_price)*100
-
+            print(price_diff)
             row_dict[interval_list[i]] = price_diff
         df_price_diff = df_price_diff.append(row_dict, ignore_index = True)    
     return df_price_diff
