@@ -41,9 +41,9 @@ def get_historical_data(api_key,
                 ])
 
     #change datatype to datetime
-    df_hist['open_time'] =  pd.to_datetime(df_hist['open_time'], unit='ms')
-    df_hist['close_time'] =  pd.to_datetime(df_hist['close_time'], unit='ms')
+    df_hist['time'] =  pd.to_datetime(df_hist['open_time'], unit='ms')
 
-    df_hist = df_hist[['open_price','high_price','low_price','close_price','volume','open_time']]
+    df_hist = df_hist[['open_price','high_price','low_price','close_price','volume','time']]
+
 
     return df_hist

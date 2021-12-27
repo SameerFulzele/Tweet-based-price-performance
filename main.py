@@ -25,16 +25,14 @@ complete_history = True
 start_time = datetime.datetime(2021, 11, 24, 0, 0, tzinfo=datetime.timezone.utc)
 
 
-df_tweets = twitter_auth.get_tweets(consumer_key, consumer_secret, 
-                                    access_token, access_token_secret,
-                                    user_id, context, complete_history,start_time)
+# df_tweets = twitter_auth.get_tweets(consumer_key, consumer_secret, 
+#                                     access_token, access_token_secret,
+#                                     user_id, context, complete_history,start_time)
 
+df_tweets = pd.read_csv('data/all_tweets.csv')
+df_tweets = twitter_auth._filter_tweets(df_tweets, context)
+df_tweets = twitter_auth._get_details(df_tweets)
 print(df_tweets)
 
 base.fetch_price_from_binance(df_tweets, binance_api_key, binance_api_secret)
-ftx_api.fetch_price_from_ftx(df_tweets)
-
-
-
-
-
+base.fetch_price_from_ftx(df_tweets)
